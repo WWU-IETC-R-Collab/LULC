@@ -9,15 +9,14 @@ output:
     keep_md: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = F)
-```
+
 
 <br>
 
 <details>
   <summary><b>Required Libraries</b></summary>
-```{r}
+
+```r
 # devtools::install_github("WWU-IETC-R-Collab/IETC")
 library(IETC)
 
@@ -34,7 +33,8 @@ library(tidyverse)
 
 <details>
   <summary><b>Functions and Class Key</b></summary>
-```{r}
+
+```r
 # Function to Tabulate raster::extract() Output by Polygon
 # http://zevross.com/blog/2015/03/30/map-and-analyze-raster-data-in-r/
 tabFunc <- function(indx, extracted, region, regname) {
@@ -48,15 +48,14 @@ pc2sqkm <- function(x, in_raster) {
   apc <- prod(raster::res(in_raster))
   x * apc / 1e+6
 }
-
-
 ```
 </details>
 <br>
 
-## Tabulating NLCD by Risk Region in R
+## Tabulating C-CAP by Risk Region in R
 
-```{r}
+
+```r
 # Create NLCD Dictionary
 # Based on: https://www.mrlc.gov/data/legends/national-land-cover-database-2016-nlcd2016-legend
 NLCD.class <- c('OpenWater' = '11',
