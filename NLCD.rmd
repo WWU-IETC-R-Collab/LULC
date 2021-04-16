@@ -107,11 +107,11 @@ USFE.NLCD.mask <- raster::mask(USFE.NLCD, USFE.riskregions.NLCD)
 raster::plot(USFE.NLCD)
 raster::plot(USFE.NLCD.mask)
 
-USFE.NLCD.df <- as.data.frame(USFE.NLCD.mask, xy=TRUE) %>%
-  filter(!is.na(.[,3]))
-
-ggplot() +
-  geom_raster(data = USFE.NLCD.df, aes(x = x, y = y, fill=USFE.NLCD.df[,3]))
+# USFE.NLCD.df <- as.data.frame(USFE.NLCD.mask, xy=TRUE) %>%
+#   filter(!is.na(.[,3]))
+# 
+# ggplot() +
+#   geom_raster(data = USFE.NLCD.df, aes(x = x, y = y, fill=USFE.NLCD.df[,3]))
 
 # Crop Raster to Risk Regions
 # USFE.NLCD.crop <- raster::crop(USFE.NLCD, raster::extent(USFE.riskregions.NLCD))
