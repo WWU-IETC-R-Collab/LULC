@@ -49,15 +49,7 @@ pc2sqkm <- function(x, in_raster) {
   x * apc / 1e+6
 }
 
-
-```
-</details>
-<br>
-
-## Tabulating NLCD by Risk Region in R
-
-```{r}
-# Create NLCD Dictionary
+# Create NLCD Class Key
 # Based on: https://www.mrlc.gov/data/legends/national-land-cover-database-2016-nlcd2016-legend
 NLCD.class <- c('OpenWater' = '11',
                 'PerennialIceSnow' = '12',
@@ -80,6 +72,13 @@ NLCD.class <- c('OpenWater' = '11',
                 'EmergentHerbWetlands' = '95'
                 )
 
+```
+</details>
+<br>
+
+## Tabulating NLCD by Risk Region in R
+
+```{r}
 # Load Risk Regions
 USFE.riskregions.z <- "https://github.com/WWU-IETC-R-Collab/CEDEN-mod/raw/main/Data/USFE_RiskRegions_9292020.zip"
 USFE.riskregions <- IETC::unzipShape(USFE.riskregions.z) # loads GitHub zipped shapefile as an sf object
@@ -100,27 +99,17 @@ USFE.NLCD <- get_nlcd(template = USFE.riskregions,
 USFE.riskregions.NLCD <- as_Spatial(st_zm(USFE.riskregions)) %>%
   spTransform(crs(USFE.NLCD))
 
+# Mask Study Area
 USFE.NLCD.mask <- raster::mask(USFE.NLCD, USFE.riskregions.NLCD)
 
-
-# Plot with raster::plot
-raster::plot(USFE.NLCD)
-raster::plot(USFE.NLCD.mask)
-
-# USFE.NLCD.df <- as.data.frame(USFE.NLCD.mask, xy=TRUE) %>%
-#   filter(!is.na(.[,3]))
-# 
-# ggplot() +
-#   geom_raster(data = USFE.NLCD.df, aes(x = x, y = y, fill=USFE.NLCD.df[,3]))
-
-# Crop Raster to Risk Regions
-# USFE.NLCD.crop <- raster::crop(USFE.NLCD, raster::extent(USFE.riskregions.NLCD))
-
+# Check Plot with raster::plot
+# raster::plot(USFE.NLCD.mask)
 
 # Extract Raster Values
 USFE.LULC <- raster::extract(USFE.NLCD.mask, USFE.riskregions.NLCD) # be patient, this takes a while
 
 # Tabulate raster::extract() lists
+# TO-DO: Modify table to be long format by class and risk region
 USFE.LULC.tabulated <- lapply(seq(USFE.LULC), tabFunc, USFE.LULC, USFE.riskregions.NLCD, "Subregion") %>% # tabulate result lists from raster::extract
   do.call("rbind", .) %>% # combine the tabulated raster::extract
   pivot_wider(names_from = Var1, # pivot classes wide
