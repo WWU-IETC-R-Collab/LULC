@@ -10,7 +10,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = F)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 <br>
@@ -18,10 +18,10 @@ knitr::opts_chunk$set(echo = TRUE, eval = F)
 <details>
   <summary><b>Required Libraries</b></summary>
 ```{r}
-# devtools::install_github("WWU-IETC-R-Collab/IETC")
+#devtools::install_github("WWU-IETC-R-Collab/IETC")
 library(IETC)
 
-# devtools::install_github("ropensci/FedData") # Use Fed Data Version 3.0.0 or higher. CRAN has 2.5.7
+#devtools::install_github("ropensci/FedData") # Use Fed Data Version 3.0.0 or higher. CRAN has 2.5.7
 library(FedData)
 
 library(rgdal) # R geoprocessing tools
@@ -73,17 +73,32 @@ NLCD.class <- c('OpenWater' = '11',
                 )
 
 ```
+
 </details>
+
 <br>
 
-## Tabulating NLCD by Risk Region in R
+## Load Data
+
+- USFE Risk Regions (shapefile, datum = WGS 84)
+- MRLC NLCD 2016 Land Cover (CONUS)
+
 
 ```{r}
 # Load Risk Regions
-USFE.riskregions.z <- "https://github.com/WWU-IETC-R-Collab/CEDEN-mod/raw/main/Data/USFE_RiskRegions_9292020.zip"
-USFE.riskregions <- IETC::unzipShape(USFE.riskregions.z) # loads GitHub zipped shapefile as an sf object
+  USFE.riskregions.z <- "https://github.com/WWU-IETC-R-Collab/CEDEN-mod/raw/main/Data/USFE_RiskRegions_9292020.zip"
+  USFE.riskregions <- IETC::unzipShape(USFE.riskregions.z) # loads GitHub zipped shapefile as an sf object
+  
+  # Visualize
+  ggplot() +
+    geom_sf(data = USFE.riskregions, fill = NA) +
+    ggtitle("USFE Risk Regions")
+  
+  tibble(USFE.riskregions)
 
+# Load Land Use Data using FedData
 # Alternative NLCD data at mrlc.gov/viewer using the following extent
+
 # Latitude dd: 36.75543, 38.92584
 # Longitude dd: -123.72037, -120.52298
 # https://www.mrlc.gov/viewer/?downloadBbox=36.75543,38.92584,-123.72037,-120.52298
@@ -95,6 +110,8 @@ USFE.NLCD <- get_nlcd(template = USFE.riskregions,
                  dataset = "Land_Cover",
                  label = "USFE")
 
+# raster::plot(USFE.NLCD, main = "NLCD Data, 2016")
+
 # Transform Risk Regions to match raster data
 USFE.riskregions.NLCD <- as_Spatial(st_zm(USFE.riskregions)) %>%
   spTransform(crs(USFE.NLCD))
@@ -103,14 +120,21 @@ USFE.riskregions.NLCD <- as_Spatial(st_zm(USFE.riskregions)) %>%
 USFE.NLCD.mask <- raster::mask(USFE.NLCD, USFE.riskregions.NLCD)
 
 # Check Plot with raster::plot
-# raster::plot(USFE.NLCD.mask)
+raster::plot(USFE.NLCD.mask, main = "2016 NLCD within \n USFE Risk Regions")
+```
 
+## Tabulating NLCD by Risk Region in R
+
+```{r}
 # Extract Raster Values
 USFE.LULC <- raster::extract(USFE.NLCD.mask, USFE.riskregions.NLCD) # be patient, this takes a while
 
 # Tabulate raster::extract() lists
-# TO-DO: Modify table to be long format by class and risk region
-USFE.LULC.tabulated <- lapply(seq(USFE.LULC), tabFunc, USFE.LULC, USFE.riskregions.NLCD, "Subregion") %>% # tabulate result lists from raster::extract
+
+USFE.LULC.tabulated <- lapply(seq(USFE.LULC),
+        tabFunc, USFE.LULC,USFE.riskregions.NLCD,
+        "Subregion") %>% # tabulate result lists from raster::extract
+  
   do.call("rbind", .) %>% # combine the tabulated raster::extract
   pivot_wider(names_from = Var1, # pivot classes wide
               values_from = Freq) %>%
@@ -120,3 +144,5 @@ USFE.LULC.tabulated <- lapply(seq(USFE.LULC), tabFunc, USFE.LULC, USFE.riskregio
 # Write Final Table to Outputs
 write_csv(USFE.LULC.tabulated, "Output/NLCD_LULC.csv")
 ```
+
+
