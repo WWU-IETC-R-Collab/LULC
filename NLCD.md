@@ -150,7 +150,7 @@ NLCD.class <- c('OpenWater' = '11',
 ```
 
 ```
-## Reading layer `RiskRegions_DWSC_Update_9292020' from data source `C:\Users\Erika\AppData\Local\Temp\RtmpIF0m1u\file1ce4279426b2\RiskRegions_DWSC_Update_9292020.shp' using driver `ESRI Shapefile'
+## Reading layer `RiskRegions_DWSC_Update_9292020' from data source `C:\Users\Erika\AppData\Local\Temp\Rtmpae3WJe\file38417ee2f21\RiskRegions_DWSC_Update_9292020.shp' using driver `ESRI Shapefile'
 ## Simple feature collection with 6 features and 6 fields
 ## geometry type:  POLYGON
 ## dimension:      XYZ
@@ -246,13 +246,17 @@ USFE.LULC.tabulated <- lapply(seq(USFE.LULC),
               values_from = Freq) %>%
   dplyr::select(name, any_of(NLCD.class)) %>% # replace column class ID # with class name
   mutate(across(where(is.numeric), ~pc2sqkm(., USFE.NLCD.mask))) # convert pixel counts to sq km
+```
 
+
+
+```r
 # Format table for next uses
 
 USFE.LULC.tabulated <- USFE.LULC.tabulated %>%
     rename(Subregion = name) %>%
     replace(is.na(.), 0) %>%
-    mutate(TotKm = rowSums(.[,-1])) %>% # calculate total km of subregion land use classes
+    mutate(TotKm = rowSums(.[,-c(1,2)])) %>% # calculate total km of subregion land use classes
     mutate(PercHighIntens = 100*DevHighInt/TotKm) %>%
     mutate(PercAgri = 100*CultivatedCrops/TotKm)
   
